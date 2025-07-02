@@ -62,4 +62,4 @@ Los productos se almacenan en memoria y se muestran en un `RecyclerView`.
 1. 🔁 **Clona el repositorio:**
 
 ```bash
-git clone https://github.com/thony-1702/Examen-Metodos-CRUD.git
+https://github.com/thony-1702/ExamenCRUDind
