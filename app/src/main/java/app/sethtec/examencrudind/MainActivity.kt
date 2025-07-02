@@ -19,8 +19,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         initRecycler()
-        binding.btnAgregar.setOnClickListener { if (editando) actualizarProducto() else crearProducto() }
+
+        binding.btnAgregar.setOnClickListener {
+            if (validarCampos()) {
+                if (editando) actualizarProducto() else crearProducto()
+            }
+        }
     }
 
     private fun initRecycler() {
@@ -33,22 +39,36 @@ class MainActivity : AppCompatActivity() {
         binding.rvProductos.adapter = adapter
     }
 
+    private fun validarCampos(): Boolean {
+        var valido = true
+        val nombre = binding.etNombre.text.toString()
+        val precioStr = binding.etPrecio.text.toString()
+        val descripcion = binding.etDescripcion.text.toString()
+
+        if (nombre.isEmpty()) {
+            binding.etNombre.error = "Nombre requerido"
+            valido = false
+        }
+        if (precioStr.isEmpty() || precioStr.toDoubleOrNull() == null) {
+            binding.etPrecio.error = "Precio requerido y debe ser un número válido"
+            valido = false
+        }
+        if (descripcion.isEmpty()) {
+            binding.etDescripcion.error = "Descripción requerida"
+            valido = false
+        }
+        return valido
+    }
+
     private fun crearProducto() {
         val nombre = binding.etNombre.text.toString()
         val precio = binding.etPrecio.text.toString().toDoubleOrNull()
         val descripcion = binding.etDescripcion.text.toString()
-
-        if (nombre.isNotEmpty() && precio != null && descripcion.isNotEmpty()) {
-            val producto = Producto(idCounter++, nombre, precio, descripcion)
-            productos.add(producto)
-            adapter.notifyItemInserted(productos.size - 1)
-            limpiarCampos()
-        } else {
-            if (nombre.isEmpty()) binding.etNombre.error = "Nombre requerido"
-            if (precio == null) binding.etPrecio.error = "Precio requerido y debe ser un número"
-            if (descripcion.isEmpty()) binding.etDescripcion.error = "Descripción requerida"
-            // Mostrar mensaje de error si algún campo está vacío o el precio no es válido
-        }
+        val producto =
+            Producto(idCounter++, nombre, precio!!, descripcion) // El precio ya fue validado
+        productos.add(producto)
+        adapter.notifyItemInserted(productos.size - 1)
+        limpiarCampos()
     }
 
     private fun cargarProductoParaEditar(producto: Producto, index: Int) {
@@ -65,25 +85,17 @@ class MainActivity : AppCompatActivity() {
         val precio = binding.etPrecio.text.toString().toDoubleOrNull()
         val descripcion = binding.etDescripcion.text.toString()
 
-        if (nombre.isNotEmpty() && precio != null && descripcion.isNotEmpty() && indiceEditando != -1) {
-            val productoActualizado = productos[indiceEditando].copy(nombre = nombre, precio = precio, descripcion = descripcion)
-            productos[indiceEditando] = productoActualizado
-            adapter.notifyItemChanged(indiceEditando)
-            limpiarCampos()
-            binding.btnAgregar.text = "Agregar"
-            editando = false
-            indiceEditando = -1
-        } else {
-            if (nombre.isEmpty()) {
-                binding.etNombre.error = "Nombre requerido"
-            }
-            if (precio == null) {
-                binding.etPrecio.error = "Precio requerido y debe ser un número"
-            }
-            if (descripcion.isEmpty()) {
-                binding.etDescripcion.error = "Descripción requerida"
-            }
-        }
+        val productoActualizado = productos[indiceEditando].copy(
+            nombre = nombre,
+            precio = precio!!,
+            descripcion = descripcion
+        ) // El precio ya fue validado
+        productos[indiceEditando] = productoActualizado
+        adapter.notifyItemChanged(indiceEditando)
+        limpiarCampos()
+        binding.btnAgregar.text = "Agregar"
+        editando = false
+        indiceEditando = -1
     }
 
     private fun eliminarProducto(index: Int) {
@@ -95,5 +107,8 @@ class MainActivity : AppCompatActivity() {
         binding.etNombre.text.clear()
         binding.etPrecio.text.clear()
         binding.etDescripcion.text.clear()
+        binding.etNombre.error = null
+        binding.etPrecio.error = null
+        binding.etDescripcion.error = null
     }
 }
